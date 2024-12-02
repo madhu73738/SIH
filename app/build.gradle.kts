@@ -41,6 +41,31 @@ android {
 
 dependencies {
 
+   
+
+    val compose_version = "1.6.0-alpha08"
+    val nav_version = "2.8.4"
+    implementation(libs.androidx.navigation.compose.v284)
+    implementation(libs.ui)
+    implementation("androidx.compose.material:material:$compose_version")
+    implementation(libs.ui.tooling.preview)
+
+
+    dependencies {
+        implementation("com.squareup.retrofit2:retrofit:2.9.0") {
+            exclude(group = "com.android.support", module = "support-v4")
+        }
+        implementation("com.squareup.retrofit2:converter-gson:2.9.0") {
+            exclude(group = "com.android.support", module = "support-v4")
+        }
+        implementation("com.squareup.okhttp3:okhttp:4.9.0") {
+            exclude(group = "com.android.support", module = "support-v4")
+        }
+    }
+
+
+
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -56,6 +81,9 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    val nav_version = "2.8.3"
+
     implementation(libs.androidx.navigation.compose)
+
+
+
 }
