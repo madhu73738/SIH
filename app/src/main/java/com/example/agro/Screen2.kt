@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 
@@ -21,6 +23,7 @@ import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme.colors
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Star
@@ -44,6 +47,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -138,7 +142,7 @@ fun Screen2() {
     var rainfallPrediction by remember { mutableStateOf<String>("Loading...") }
     var isLoading by remember { mutableStateOf(true) }
     val scope = rememberCoroutineScope() // To launch suspend functions in a coroutine
-
+    var userInputTime by remember { mutableStateOf("0") } // User input for time in seconds
 
     // State for city (not used in the code but can be extended for user input)
     val city = remember { mutableStateOf("") }
@@ -190,7 +194,8 @@ fun Screen2() {
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
-    ) {
+    )
+    {
         // Weather data displayed in a LazyVerticalGrid (4 cards in total)
         LazyVerticalGrid(
             columns = GridCells.Fixed(2), // 2 cards per row
@@ -216,9 +221,8 @@ fun Screen2() {
                 label = "Prediction For Rain",
                 value = rainfallPrediction,
                 icon = painterResource(id = R.drawable.baseline_cloudy_snowing_24),
-               modifier = Modifier.fillMaxWidth(0.6f)
-                   .height(140.dp)
-            )// Reduced width (50%)
+                modifier = Modifier.fillMaxWidth(0.6f).height(140.dp)
+            )
         }
 
         // Timer display
@@ -230,15 +234,31 @@ fun Screen2() {
 
         Spacer(modifier = Modifier.height(18.dp))
 
+        // User input for timer (minutes)
+        OutlinedTextField(
+            value = userInputTime,
+            onValueChange = { newValue ->
+                if (newValue.all { it.isDigit() }) {
+                    userInputTime = newValue
+                }
+            },
+            label = { Text("Enter Time (in minutes)") },
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+            keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() })
+        )
+
+        Spacer(modifier = Modifier.height(18.dp))
+
         // Row for Start/Pause and Reset buttons
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
             Button(
                 onClick = {
-                    if (isRunning) {
-                        isRunning = false
-                    } else {
-                        startTime = System.currentTimeMillis() - time
-                        isRunning = true
+                    val startTimeInMillis = userInputTime.toLongOrNull()?.times(60_000) ?: 0L // Convert minutes to milliseconds
+                    if (startTimeInMillis > 0) {
+                        time = startTimeInMillis
+                        isRunning = !isRunning
+                        startTime = System.currentTimeMillis()
                         keyboardController?.hide() // Hide keyboard when starting the timer
                     }
                 },
@@ -257,6 +277,7 @@ fun Screen2() {
                 onClick = {
                     time = 0
                     isRunning = false
+                    userInputTime = "0" // Reset input as well
                 },
                 modifier = Modifier.weight(1f),
                 colors = ButtonDefaults.buttonColors(
@@ -269,11 +290,14 @@ fun Screen2() {
         }
     }
 
-    // Timer logic in a LaunchedEffect for continuous time update
+    // Timer logic for reverse countdown
     LaunchedEffect(isRunning) {
-        while (isRunning) {
+        while (isRunning && time > 0) {
             delay(1000) // Delay of 1 second
-            time = System.currentTimeMillis() - startTime
+            time -= 1000 // Decrease time by 1 second
+        }
+        if (time <= 0) {
+            isRunning = false // Stop the timer when it reaches zero
         }
     }
 }
