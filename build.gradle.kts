@@ -7,7 +7,7 @@ buildscript {
     }
     dependencies {
         // Correct AGP version classpath
-        classpath("com.android.tools.build:gradle:8.7.2")  // Use parentheses instead of single quotes
+        classpath("com.android.tools.build:gradle:8.7.0-alpha03")  // Use parentheses instead of single quotes
     }
 }
 
